@@ -1,110 +1,123 @@
 ---
 name: cli-anything
-description: Use when the user wants Codex to build, refine, test, or validate a CLI-Anything harness for a GUI application or source repository. Adapts the CLI-Anything methodology to Codex without changing the generated Python harness format.
+description: Use when the user wants Codex to build, refine, test, validate, list, install, or maintain a CLI-Anything harness for a GUI application or source repository. This skill mirrors the mature CLI-Anything workflow used by Claude Code and OpenCode, but adapts it to Codex's natural-language skill model.
+metadata:
+  short-description: Mature Codex bridge for CLI-Anything
 ---
 
 # CLI-Anything for Codex
 
-Use this skill when the user wants Codex to act like the `CLI-Anything` builder.
+Use this skill whenever the user wants Codex to act like the `CLI-Anything` builder, reviewer, tester, validator, or installer.
 
-If this skill is being used from inside the `CLI-Anything` repository, read `../cli-anything-plugin/HARNESS.md` before implementation. That file is the full methodology source of truth. If it is not available, follow the condensed rules below.
+This Codex package is intentionally self-contained:
 
-## Inputs
+- `references/HARNESS.md` is the bundled methodology snapshot
+- `references/commands/*.md` mirror the mature Claude Code command specs
+- `scripts/verify_install.py` mechanically checks the installed skill bundle
+- `scripts/sync_from_plugin.py` keeps this skill aligned with the Claude/OpenCode source of truth when working inside the repository
 
-Accept either:
+## Rule 1: Read The Bundled HARNESS First
 
-- A local source path such as `./gimp` or `/path/to/software`
-- A GitHub repository URL
+Before doing build, refine, test, or validate work, read `references/HARNESS.md`.
 
-Derive the software name from the local directory name after cloning if needed.
+If you are inside the `CLI-Anything` repository and need to maintain this Codex integration itself:
 
-## Modes
+1. Read `.agentlens/INDEX.md`
+2. Run `python3 codex-skill/scripts/sync_from_plugin.py --check`
+3. If references drifted, run `python3 codex-skill/scripts/sync_from_plugin.py`
+
+## Rule 2: Treat Claude/OpenCode Commands As Semantic Modes
+
+Codex does not provide the same slash-command UX as Claude Code or OpenCode. When using this skill:
+
+- Interpret `references/commands/cli-anything.md` as the `build` mode spec
+- Interpret `references/commands/refine.md` as the `refine` mode spec
+- Interpret `references/commands/test.md` as the `test` mode spec
+- Interpret `references/commands/validate.md` as the `validate` mode spec
+- Interpret `references/commands/list.md` as the `list/discovery` mode spec
+
+Do not insist on literal slash commands. Natural-language requests should map onto the same behavior.
+
+## Mode Routing
 
 ### Build
 
 Use when the user wants a new harness.
 
-Produce this structure:
+Read:
 
-```text
-<software>/
-└── agent-harness/
-    ├── <SOFTWARE>.md
-    ├── setup.py
-    └── cli_anything/
-        └── <software>/
-            ├── README.md
-            ├── __init__.py
-            ├── __main__.py
-            ├── <software>_cli.py
-            ├── core/
-            ├── utils/
-            └── tests/
-```
+1. `references/HARNESS.md`
+2. `references/commands/cli-anything.md`
 
-Implement a stateful Click CLI with:
-
-- one-shot subcommands
-- REPL mode as the default when no subcommand is given
-- `--json` machine-readable output
-- session state with undo/redo where the target software supports it
+Accept either a local source path or a repository URL. Follow the same 7-phase workflow used by the mature plugin implementation.
 
 ### Refine
 
-Use when the harness already exists.
+Use when the harness already exists and the user wants broader coverage or a focused capability expansion.
 
-First inventory current commands and tests, then do gap analysis against the target software. Prefer:
+Read:
 
-- high-impact missing features
-- easy wrappers around existing backend APIs or CLIs
-- additions that compose well with existing commands
+1. `references/HARNESS.md`
+2. `references/commands/refine.md`
 
-Do not remove existing commands unless the user explicitly asks for a breaking change.
+Present the gap analysis before implementing when the situation is ambiguous.
 
 ### Test
 
-Plan tests before writing them. Keep both:
+Use when the user wants to run or repair the harness test suite.
 
-- `test_core.py` for unit coverage
-- `test_full_e2e.py` for workflow and backend validation
+Read:
 
-When possible, test the installed command via subprocess using `cli-anything-<software>` rather than only module imports.
+1. `references/HARNESS.md`
+2. `references/commands/test.md`
+
+Prefer subprocess checks against the installed CLI when possible, not only module imports.
 
 ### Validate
 
-Check that the harness:
+Use when the user asks whether a harness is complete, compliant, production-ready, or aligned with the methodology.
 
-- uses the `cli_anything.<software>` namespace package layout
-- has an installable `setup.py` entry point
-- supports JSON output
-- has a REPL default path
-- documents usage and tests
+Read:
 
-## Backend Rules
+1. `references/HARNESS.md`
+2. `references/commands/validate.md`
 
-Prefer the real software backend over reimplementation. Wrap the actual executable or scripting interface in `utils/<software>_backend.py` when possible. Use synthetic reimplementation only when the project explicitly requires it or no viable native backend exists.
+Map findings directly to file paths and methodology requirements.
 
-## Packaging Rules
+### List / Discover
 
-- Use `find_namespace_packages(include=["cli_anything.*"])`
-- Keep `cli_anything/` as a namespace package without a top-level `__init__.py`
-- Expose `cli-anything-<software>` through `console_scripts`
+Use when the user wants to know which CLI-Anything tools already exist locally or are installed.
 
-## Workflow
+Read:
 
-1. Acquire the source tree locally.
-2. Analyze architecture, data model, existing CLIs, and GUI-to-API mappings.
-3. Design command groups and state model.
-4. Implement the harness.
-5. Write `TEST.md`, then tests, then run them.
-6. Update README usage docs.
-7. Verify local installation with `pip install -e .`
+1. `references/commands/list.md`
+
+Return structured results when requested.
+
+### Install / Maintain This Skill
+
+Use when the user wants to install, upgrade, verify, or debug the Codex integration itself.
+
+Read:
+
+1. `references/install.md`
+
+Use the bundled installers and verification scripts rather than ad-hoc copying.
 
 ## Output Expectations
 
-When reporting progress or final results, include:
+When reporting work, include:
 
-- target software and source path
-- files added or changed
-- validation commands run
-- open risks or backend limitations
+- the target software and source path
+- the active mode: build, refine, test, validate, or list
+- the files added or changed
+- the verification commands actually run
+- the remaining risks, backend limitations, or missing coverage
+
+## Constraints
+
+- Keep the generated Python harness format unchanged from the CLI-Anything methodology
+- Prefer the real software backend over synthetic reimplementation
+- Keep `cli_anything/` as a namespace package without a top-level `__init__.py`
+- Expose `cli-anything-<software>` via `console_scripts`
+- Update tests and docs whenever commands or behavior change

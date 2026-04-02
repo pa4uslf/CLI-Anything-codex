@@ -324,14 +324,19 @@ The skill follows the same 7-phase methodology as Claude Code and OpenCode.
 
 **Step 1: Install the Skill**
 
-Run the bundled installer:
+Run the bundled installer. The Codex bundle now ships with:
+
+- a local `HARNESS.md` snapshot
+- mirrored command references for build/refine/test/validate/list
+- install verification
+- a sync script to keep Codex references aligned with the Claude/OpenCode source of truth
 
 ```bash
 # Clone the repo
 git clone https://github.com/HKUDS/CLI-Anything.git
 
 # Install the skill
-bash CLI-Anything/codex-skill/scripts/install.sh
+bash CLI-Anything/codex-skill/scripts/install.sh --sync --verify
 ```
 
 On Windows PowerShell, use:
@@ -341,6 +346,7 @@ On Windows PowerShell, use:
 ```
 
 This installs the skill to `$CODEX_HOME/skills/cli-anything` (or `~/.codex/skills/cli-anything` if `CODEX_HOME` is unset).
+Use `--force` if you are upgrading an existing installation.
 
 Restart Codex after installation so it is discovered.
 
@@ -352,10 +358,23 @@ Describe the task in natural language, for example:
 Use CLI-Anything to build a harness for ./gimp
 Use CLI-Anything to refine ./shotcut for picture-in-picture workflows
 Use CLI-Anything to validate ./libreoffice
+Use CLI-Anything to test ./audacity
+Use CLI-Anything to list CLI-Anything tools under ./output with depth 2
 ```
 
-The Codex skill adapts the same methodology used by the Claude Code plugin and
-OpenCode commands, while keeping the generated Python harness format unchanged.
+The Codex skill now bundles the same methodology snapshot and command references
+used by the mature Claude Code plugin and OpenCode commands, while keeping the
+generated Python harness format unchanged.
+
+**Maintenance checks**
+
+```bash
+# Verify the local Codex bundle
+python3 CLI-Anything/codex-skill/scripts/verify_install.py CLI-Anything/codex-skill
+
+# Check whether Codex references drifted from cli-anything-plugin
+python3 CLI-Anything/codex-skill/scripts/sync_from_plugin.py --check
+```
 </details>
 
 <details>

@@ -244,14 +244,19 @@ cp CLI-Anything/openclaw-skill/SKILL.md ~/.openclaw/skills/cli-anything/SKILL.md
 
 **第一步：安装 Skill**
 
-运行仓库内置的安装脚本：
+运行仓库内置的安装脚本。现在这个 Codex 包会一并提供：
+
+- 本地打包的 `HARNESS.md` 方法论快照
+- 与 Claude/OpenCode 对齐的 build/refine/test/validate/list 命令参考
+- 安装后校验
+- 用于与 `cli-anything-plugin` 保持同步的脚本
 
 ```bash
 # 克隆仓库
 git clone https://github.com/HKUDS/CLI-Anything.git
 
 # 安装 skill
-bash CLI-Anything/codex-skill/scripts/install.sh
+bash CLI-Anything/codex-skill/scripts/install.sh --sync --verify
 ```
 
 在 Windows PowerShell 中，可以使用：
@@ -260,7 +265,7 @@ bash CLI-Anything/codex-skill/scripts/install.sh
 .\CLI-Anything\codex-skill\scripts\install.ps1
 ```
 
-脚本会把 skill 安装到 `$CODEX_HOME/skills/cli-anything`；如果没有设置 `CODEX_HOME`，则默认安装到 `~/.codex/skills/cli-anything`。
+脚本会把 skill 安装到 `$CODEX_HOME/skills/cli-anything`；如果没有设置 `CODEX_HOME`，则默认安装到 `~/.codex/skills/cli-anything`。如果是升级已有安装，可加 `--force`。
 
 安装后重启 Codex，让它重新发现这个 skill。
 
@@ -272,10 +277,22 @@ bash CLI-Anything/codex-skill/scripts/install.sh
 Use CLI-Anything to build a harness for ./gimp
 Use CLI-Anything to refine ./shotcut for picture-in-picture workflows
 Use CLI-Anything to validate ./libreoffice
+Use CLI-Anything to test ./audacity
+Use CLI-Anything to list CLI-Anything tools under ./output with depth 2
 ```
 
-这个 Codex skill 复用了 Claude Code 插件和 OpenCode 命令所使用的同一套方法论，
-不会改变生成出来的 Python harness 结构。
+这个 Codex skill 现在会打包与 Claude Code 插件、OpenCode 命令一致的
+方法论快照和命令参考，同时不改变生成出来的 Python harness 结构。
+
+**维护检查**
+
+```bash
+# 校验本地 Codex bundle 是否完整
+python3 CLI-Anything/codex-skill/scripts/verify_install.py CLI-Anything/codex-skill
+
+# 检查 Codex 参考资料是否与 cli-anything-plugin 漂移
+python3 CLI-Anything/codex-skill/scripts/sync_from_plugin.py --check
+```
 
 </details>
 
